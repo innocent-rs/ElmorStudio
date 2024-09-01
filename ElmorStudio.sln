@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KTH.API", "KTH.API\KTH.API.csproj", "{0D55A566-1E10-45CA-B5E9-724072494787}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KTH.CLI", "KTH.CLI\KTH.CLI.csproj", "{EB8174B8-ECCC-47EC-B331-2EC5B5D9EDDA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KTH.API.Tests", "KTH.API.Tests\KTH.API.Tests.csproj", "{48E9B0BB-0DFF-4BC1-85B1-D6DD2E06DD6D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0D55A566-1E10-45CA-B5E9-724072494787}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0D55A566-1E10-45CA-B5E9-724072494787}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0D55A566-1E10-45CA-B5E9-724072494787}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0D55A566-1E10-45CA-B5E9-724072494787}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EB8174B8-ECCC-47EC-B331-2EC5B5D9EDDA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EB8174B8-ECCC-47EC-B331-2EC5B5D9EDDA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EB8174B8-ECCC-47EC-B331-2EC5B5D9EDDA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EB8174B8-ECCC-47EC-B331-2EC5B5D9EDDA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{48E9B0BB-0DFF-4BC1-85B1-D6DD2E06DD6D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{48E9B0BB-0DFF-4BC1-85B1-D6DD2E06DD6D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{48E9B0BB-0DFF-4BC1-85B1-D6DD2E06DD6D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{48E9B0BB-0DFF-4BC1-85B1-D6DD2E06DD6D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
