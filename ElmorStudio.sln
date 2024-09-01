@@ -6,6 +6,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KTH.CLI", "KTH.CLI\KTH.CLI.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KTH.API.Tests", "KTH.API.Tests\KTH.API.Tests.csproj", "{48E9B0BB-0DFF-4BC1-85B1-D6DD2E06DD6D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ElmorStudio", "ElmorStudio\ElmorStudio.csproj", "{D01E8F7B-4CC5-42EC-86A7-77B1DA2D5992}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,9 @@ Global
 		{48E9B0BB-0DFF-4BC1-85B1-D6DD2E06DD6D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{48E9B0BB-0DFF-4BC1-85B1-D6DD2E06DD6D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{48E9B0BB-0DFF-4BC1-85B1-D6DD2E06DD6D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D01E8F7B-4CC5-42EC-86A7-77B1DA2D5992}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D01E8F7B-4CC5-42EC-86A7-77B1DA2D5992}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D01E8F7B-4CC5-42EC-86A7-77B1DA2D5992}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D01E8F7B-4CC5-42EC-86A7-77B1DA2D5992}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

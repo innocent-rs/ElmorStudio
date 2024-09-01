@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AvaloniaProject">
+    <option name="projectPerEditor">
+      <map>
+        <entry key="ElmorStudio/App.axaml" value="ElmorStudio/ElmorStudio.csproj" />
+        <entry key="ElmorStudio/Views/KTHTab.axaml" value="ElmorStudio/ElmorStudio.csproj" />
+        <entry key="ElmorStudio/Views/MainWindow.axaml" value="ElmorStudio/ElmorStudio.csproj" />
+      </map>
+    </option>
+  </component>
+</project>

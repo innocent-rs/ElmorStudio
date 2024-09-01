@@ -1,0 +1,24 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:ElmorStudio.ViewModels"
+             x:DataType="vm:KthTabViewModel"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="ElmorStudio.Views.KTHTab">
+    <StackPanel>
+        <TextBlock Text="Firmware version"></TextBlock>
+        <TextBlock Text="{Binding FirmwareVersion}"></TextBlock>
+        <TextBlock Text="UID"></TextBlock>
+        <TextBlock Text="{Binding UID}"></TextBlock>
+        <TextBlock Text="Unit" />
+        <ComboBox ItemsSource="{Binding Units}"
+                  SelectedItem="{Binding Unit}"
+                  Width="150" />
+        <TextBlock Text="Speed"></TextBlock>
+        <ComboBox ItemsSource="{Binding Speeds}"
+                  SelectedItem="{Binding Speed}"
+                  Width="150" />
+        <Button Content="Apply settings" Command="{Binding SubmitCommand}"></Button>
+    </StackPanel>
+</UserControl>
