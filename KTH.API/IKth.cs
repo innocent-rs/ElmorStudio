@@ -21,5 +21,6 @@ public interface IKth : IDisposable
     public CalibrationValue ReadCalibrationTc2();
     public void WriteAutoOff(byte value);
     public void WriteUnit(Unit unit);
+    public void WriteSpeed(Speed value);
     public void Nop();
 }

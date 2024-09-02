@@ -9,42 +9,40 @@ public class KthTabViewModel : ReactiveObject
 {
     public static Unit[] Units => (Unit[])Enum.GetValues(typeof(Unit));
     public static Speed[] Speeds => (Speed[])Enum.GetValues(typeof(Speed));
-    
+
     private readonly IKth _kth;
-    private Unit _unit;
-    private Unit _kthUnit;
-    private Speed _speed;
-    private Speed _kthSpeed;
-    public string FirmwareVersion { get; }
-    public string UID { get; }
-
-    public Unit Unit
-    {
-        get => _unit;
-        set => this.RaiseAndSetIfChanged(ref _unit, value);
-    }
-
-    public Speed Speed
-    {
-        get => _speed;
-        set => this.RaiseAndSetIfChanged(ref _speed, value);
-    }
+    public SynchronizedProperty<Unit> Unit { get; }
+    public SynchronizedProperty<Speed> Speed { get; }
+    public string FirmwareVersion { get; private set; }
+    public string UID { get; private set; }
 
     public ReactiveCommand<System.Reactive.Unit, System.Reactive.Unit> SubmitCommand { get; }
     public KthTabViewModel(IKth kth)
     {
         _kth = kth;
-        FirmwareVersion = kth.ReadFirmwareVersion().ToString("X4");
-        UID = kth.ReadUniqueId().ToString();
-        _kthUnit = Unit = kth.ReadUnit();
-        _kthSpeed = Speed = kth.ReadSpeed();
-        var canSubmit = this.WhenAnyValue(
-            x => x.Unit,
-            x => x.Speed,
-            (unit, speed) => unit != _kthUnit || speed != _kthSpeed
+        FirmwareVersion = _kth.ReadFirmwareVersion().ToString("X4");
+        UID = _kth.ReadUniqueId().ToString();
+        Unit = new SynchronizedProperty<Unit>(
+            kth.ReadUnit(),
+            _kth.WriteUnit
         );
+        Speed = new SynchronizedProperty<Speed>(
+            kth.ReadSpeed(),
+            _kth.WriteSpeed
+        );
+
+        var canSubmit = this.WhenAnyValue(
+            x => x.Unit.HasChanged,
+            x => x.Speed.HasChanged,
+            (unit, speed) => unit || speed
+        );
+
         SubmitCommand = ReactiveCommand.Create(
-            () => { Console.WriteLine("Hello"); },
+            () =>
+            {
+                Unit.UpdateStoredValue();
+                Speed.UpdateStoredValue();
+            },
             canSubmit
         );
     }

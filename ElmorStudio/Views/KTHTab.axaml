@@ -13,11 +13,11 @@
         <TextBlock Text="{Binding UID}"></TextBlock>
         <TextBlock Text="Unit" />
         <ComboBox ItemsSource="{Binding Units}"
-                  SelectedItem="{Binding Unit}"
+                  SelectedItem="{Binding Unit.UiValue}"
                   Width="150" />
         <TextBlock Text="Speed"></TextBlock>
         <ComboBox ItemsSource="{Binding Speeds}"
-                  SelectedItem="{Binding Speed}"
+                  SelectedItem="{Binding Speed.UiValue}"
                   Width="150" />
         <Button Content="Apply settings" Command="{Binding SubmitCommand}"></Button>
     </StackPanel>

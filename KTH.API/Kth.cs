@@ -92,7 +92,7 @@ internal class Kth(IDevice device) : IKth
 
     public void WriteAutoOff(byte value) => Send(new AutoOffMessage(value));
     public void WriteUnit(Unit unit) => SendMessageAndCheckCompletion(new WriteUnitMessage(unit));
-    public void WriteSpeed(byte value) => SendMessageAndCheckCompletion(new WriteSpeedMessage(value));
+    public void WriteSpeed(Speed value) => SendMessageAndCheckCompletion(new WriteSpeedMessage((byte)value));
     public void WriteCalibrationProfile(CalibrationProfile calibrationProfile) => Send(new WriteCalibrationProfile(calibrationProfile));
 
     public void Nop() => Send(new EmptyMessage(MessageId.Nop));

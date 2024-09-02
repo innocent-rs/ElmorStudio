@@ -5,8 +5,6 @@ using System.Management;
 
 namespace KTH.API;
 
-public record AvailablePort(string PortName, string Description);
-
 public static class KthFactory
 {
     private const string EVC2_PNPID = "USB\\VID_0483&PID_5740&MI_01";

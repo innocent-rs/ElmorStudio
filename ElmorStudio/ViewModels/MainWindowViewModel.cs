@@ -6,11 +6,7 @@ using ElmorStudio.Views;
 using KTH.API;
 
 namespace ElmorStudio.ViewModels;
-public class TabItemViewModel : ViewModelBase
-{
-    public string Header { get; set; }
-    public object Content { get; set; }
-}
+
 public partial class MainWindowViewModel : ViewModelBase, IDisposable
 {
     public ObservableCollection<TabItemViewModel> Tabs { get; }
