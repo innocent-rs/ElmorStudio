@@ -1,20 +1,27 @@
-import React, {useEffect, useState} from "react";
+import {useEffect, useState} from "react";
 import {invoke} from "@tauri-apps/api/core";
 import "./App.css";
 import {DndProvider, useDrag, useDrop} from "react-dnd";
 import {HTML5Backend} from "react-dnd-html5-backend";
+import { PencilIcon } from '@heroicons/react/24/solid';
 
+interface Group {
+    id: number;
+    name: string;
+    devices: Device[];
+
+}
 interface Device {
     id: number;
     kind: string;
     port: String;
     is_open: boolean;
     firmware: number;
-    folder?: string; // Folder name (optional)
+    //folder?: string; // Folder name (optional)
 }
 
 function Devices() {
-    const [devices, setDevices] = useState<Device[]>([]);
+    const [groups, setGroups] = useState<Group[]>([]);
     const [groupNames, setGroupNames] = useState<{ [key: string]: string }>({}); // Store custom group names
     const [editingGroup, setEditingGroup] = useState<string | null>(null); // Track which group is being renamed
     const [newGroupName, setNewGroupName] = useState<string>(""); // Track new group name input
@@ -27,8 +34,8 @@ function Devices() {
         const fetchDevices = async () => {
             try {
                 // Await the result of the invoke call
-                const result = await invoke<Device[]>('get_devices');
-                setDevices(result); // Update the state with the fetched devices
+                const result = await invoke<Group[]>('get_groups');
+                setGroups(result); // Update the state with the fetched devices
                 console.log(result);
             } catch (error) {
                 console.error('Error fetching devices:', error);
@@ -39,7 +46,7 @@ function Devices() {
     }, []); // The empty array ensures the effect runs only once, when the component mounts
 
     const handleDrop = (draggedDevice: Device, targetDevice: Device) => {
-        if (draggedDevice.id === targetDevice.id) return; // Don't drop onto the same card
+/*        if (draggedDevice.id === targetDevice.id) return; // Don't drop onto the same card
         setDevices((prevDevices) => {
             const folder = targetDevice.folder || `Group ${targetDevice.id}`; // Assign a folder name if it doesn't exist
             return prevDevices.map((device) =>
@@ -49,24 +56,19 @@ function Devices() {
                         ? {...device, folder} // Also assign folder to target device
                         : device
             );
-        });
+        });*/
     };
 
-    const groupedDevices = devices.reduce((acc, device) => {
+/*    const groupedDevices = devices.reduce((acc, device) => {
         const folder = device.folder || 'Ungrouped';
         if (!acc[folder]) acc[folder] = [];
         acc[folder].push(device);
         return acc;
-    }, {} as Record<string, Device[]>);
+    }, {} as Record<string, Device[]>);*/
 
-    const handleRemoveFromGroup = (deviceId: number) => {
-        setDevices((prevDevices) =>
-            prevDevices.map((device) =>
-                device.id === deviceId
-                    ? {...device, folder: undefined} // Remove device from group
-                    : device
-            )
-        );
+    const handleRemoveGroup = async (groupId: number) => {
+        const updatedGroups: Group[] = await invoke('remove_group', { id: groupId });
+        setGroups(updatedGroups); // Update the local state with the updated groups
     };
 
     const handleRenameGroup = (folder: string) => {
@@ -107,7 +109,7 @@ function Devices() {
                 ))}
             </div>
         );*/
-    const handleDeleteGroup = (folder: string) => {
+/*    const handleDeleteGroup = (folder: string) => {
         setDevices((prevDevices) =>
             prevDevices.map((device) =>
                 device.folder === folder ? {...device, folder: undefined} : device
@@ -118,16 +120,17 @@ function Devices() {
             delete updatedNames[folder]; // Remove the custom name for the deleted group
             return updatedNames;
         });
-    };
+    };*/
+
     return (
         <div className="container mx-auto p-4">
-            {Object.entries(groupedDevices).map(([folderName, folderDevices]) => {
-                const displayFolderName = groupNames[folderName] || folderName;
+            {groups.map((group: Group) => {
+                const displayFolderName = group.name;
 
                 return (
-                    <div key={folderName} className="mb-8">
+                    <div key={group.id} className="mb-8">
                         <div className="flex items-center justify-between">
-                            {editingGroup === folderName ? (
+                            {editingGroup === group.name ? (
                                 <div className="flex">
                                     <input
                                         type="text"
@@ -152,16 +155,18 @@ function Devices() {
                                 <h2 className="text-3xl font-bold mb-4 text-gray-100">{displayFolderName}</h2>
                             )}
 
-                            {!editingGroup && folderName !== "Ungrouped" && (
+                            {!editingGroup && group.name !== "Ungrouped" && (
                                 <div className="flex space-x-2">
                                     <button
-                                        onClick={() => handleRenameGroup(folderName)}
+                                        onClick={() => handleRenameGroup(group.name)}
                                         className="px-4 py-2 bg-gray-600 text-white rounded"
                                     >
-                                        Rename Group
+                                        <div className="icons">
+                                            <PencilIcon className="h-6 w-6"/> {/* Solid Pencil Icon */}
+                                        </div>
                                     </button>
                                     <button
-                                        onClick={() => handleDeleteGroup(folderName)}
+                                        onClick={() => handleRemoveGroup(group.id)}
                                         className="px-4 py-2 bg-red-600 text-white rounded"
                                     >
                                         Delete Group
@@ -170,7 +175,7 @@ function Devices() {
                             )}
                         </div>
 
-                        {folderName !== "Ungrouped" && (
+                        {/*{group.name !== "Ungrouped" && (
                             <div className="flex space-x-4 mt-2">
                                 <div>
                                     <label className="block text-gray-400">Pull Rate:</label>
@@ -191,15 +196,15 @@ function Devices() {
                                     />
                                 </div>
                             </div>
-                        )}
+                        )}*/}
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-                            {folderDevices.map((device) => (
+                            {group.devices.map((device) => (
                                 <DeviceCard
                                     key={device.id}
                                     device={device}
                                     onDrop={handleDrop}
-                                    onRemoveFromGroup={handleRemoveFromGroup}
+                                    /*onRemoveFromGroup={handleRemoveFromGroup}*/
                                 />
                             ))}
                         </div>
