@@ -3,13 +3,13 @@ import {invoke} from "@tauri-apps/api/core";
 import "./App.css";
 import {DndProvider, useDrag, useDrop} from "react-dnd";
 import {HTML5Backend} from "react-dnd-html5-backend";
-import { PencilIcon } from '@heroicons/react/24/solid';
+import {LockClosedIcon, LockOpenIcon, PencilIcon} from '@heroicons/react/24/solid';
 
 interface Group {
     id: number;
     name: string;
     devices: Device[];
-
+    is_locked: boolean;
 }
 interface Device {
     id: number;
@@ -17,8 +17,22 @@ interface Device {
     port: String;
     is_open: boolean;
     firmware: number;
+    isLocked: boolean;
     //folder?: string; // Folder name (optional)
 }
+
+const LockButton = ({ isLocked, onToggleLock }) => {
+    return (
+        <button onClick={onToggleLock} className="focus:outline-none">
+            {isLocked}
+            {isLocked ? (
+                <LockClosedIcon className="h-6 w-6 text-gray-700" />
+            ) : (
+                <LockOpenIcon className="h-6 w-6 text-gray-700" />
+            )}
+        </button>
+    );
+};
 
 function Devices() {
     const [groups, setGroups] = useState<Group[]>([]);
@@ -45,18 +59,10 @@ function Devices() {
         fetchDevices(); // Call the async function
     }, []); // The empty array ensures the effect runs only once, when the component mounts
 
-    const handleDrop = (draggedDevice: Device, targetDevice: Device) => {
-/*        if (draggedDevice.id === targetDevice.id) return; // Don't drop onto the same card
-        setDevices((prevDevices) => {
-            const folder = targetDevice.folder || `Group ${targetDevice.id}`; // Assign a folder name if it doesn't exist
-            return prevDevices.map((device) =>
-                device.id === draggedDevice.id
-                    ? {...device, folder} // Add dragged device to folder
-                    : device.id === targetDevice.id
-                        ? {...device, folder} // Also assign folder to target device
-                        : device
-            );
-        });*/
+    const handleDrop = async (draggedDevice: Device, targetDevice: Device) => {
+        if (draggedDevice.id === targetDevice.id) return; // Don't drop onto the same card
+        const result = await invoke<Group[]>('merge_devices', {'dId1': draggedDevice.id, 'dId2': targetDevice.id});
+        setGroups(result)
     };
 
 /*    const groupedDevices = devices.reduce((acc, device) => {
@@ -67,8 +73,9 @@ function Devices() {
     }, {} as Record<string, Device[]>);*/
 
     const handleRemoveGroup = async (groupId: number) => {
-        const updatedGroups: Group[] = await invoke('remove_group', { id: groupId });
+        const updatedGroups: Group[] = await invoke('remove_group', { groupId: groupId });
         setGroups(updatedGroups); // Update the local state with the updated groups
+        console.log(updatedGroups);
     };
 
     const handleRenameGroup = (folder: string) => {
@@ -122,14 +129,37 @@ function Devices() {
         });
     };*/
 
+    const onAddGroup = async () => {
+        let groups = await invoke<Group[]>('create_group');
+
+        setGroups(groups);
+    };
+
+    const toggleLock = async (group: Group) => {
+        const updatedGroups = await invoke<Group[]>('lock_unlock_group', {
+            groupId: group.id,
+            lock: !group.is_locked, // Toggle current lock state
+        });
+        setGroups(updatedGroups);
+    };
     return (
         <div className="container mx-auto p-4">
+            <button
+                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                onClick={onAddGroup}
+            >
+                Add Group
+            </button>
             {groups.map((group: Group) => {
                 const displayFolderName = group.name;
 
                 return (
                     <div key={group.id} className="mb-8">
                         <div className="flex items-center justify-between">
+                            <LockButton
+                                isLocked={group.is_locked}
+                                onToggleLock={() => toggleLock(group)}
+                            />
                             {editingGroup === group.name ? (
                                 <div className="flex">
                                     <input
@@ -158,16 +188,18 @@ function Devices() {
                             {!editingGroup && group.name !== "Ungrouped" && (
                                 <div className="flex space-x-2">
                                     <button
+                                        disabled={group.is_locked}
                                         onClick={() => handleRenameGroup(group.name)}
-                                        className="px-4 py-2 bg-gray-600 text-white rounded"
+                                        className="px-4 py-2 bg-gray-600 text-white rounded disabled:bg-gray-400 disabled:cursor-not-allowed"
                                     >
                                         <div className="icons">
                                             <PencilIcon className="h-6 w-6"/> {/* Solid Pencil Icon */}
                                         </div>
                                     </button>
                                     <button
+                                        disabled={group.is_locked}
                                         onClick={() => handleRemoveGroup(group.id)}
-                                        className="px-4 py-2 bg-red-600 text-white rounded"
+                                        className="px-4 py-2 bg-red-600 text-white rounded disabled:bg-gray-400 disabled:cursor-not-allowed"
                                     >
                                         Delete Group
                                     </button>
@@ -270,14 +302,14 @@ function DeviceCard({device, onDrop, onRemoveFromGroup}: {
                 Port: {device.port} <br/>
                 Firmware version: 0x{device.firmware}
             </p>
-            {device.folder && (
+{/*            {device.folder && (
                 <button
                     className="mt-2 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-500"
                     onClick={() => onRemoveFromGroup(device.id)}
                 >
                     Remove from Group
                 </button>
-            )}
+            )}*/}
         </div>
     );
 }
