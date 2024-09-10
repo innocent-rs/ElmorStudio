@@ -48,7 +48,7 @@ function Devices() {
         const fetchDevices = async () => {
             try {
                 // Await the result of the invoke call
-                const result = await invoke<Group[]>('get_groups');
+                const result = await invoke<Group[]>('groups_fetch');
                 setGroups(result); // Update the state with the fetched devices
                 console.log(result);
             } catch (error) {
@@ -73,7 +73,7 @@ function Devices() {
     }, {} as Record<string, Device[]>);*/
 
     const handleRemoveGroup = async (groupId: number) => {
-        const updatedGroups: Group[] = await invoke('remove_group', { groupId: groupId });
+        const updatedGroups: Group[] = await invoke('group_remove', { groupId: groupId });
         setGroups(updatedGroups); // Update the local state with the updated groups
         console.log(updatedGroups);
     };
@@ -85,7 +85,7 @@ function Devices() {
 
     const handleGroupNameChange = async (groupId: number) => {
         if (!newGroupName.trim()) return; // Don't allow empty group names
-        let groups = await invoke<Group[]>('rename_group', {groupId, newName: newGroupName});
+        let groups = await invoke<Group[]>('group_rename', {groupId, newName: newGroupName});
         setGroups(groups);
         setEditingGroup(null); // Reset the renaming state
     };
@@ -128,13 +128,13 @@ function Devices() {
     };*/
 
     const onAddGroup = async () => {
-        let groups = await invoke<Group[]>('create_group');
+        let groups = await invoke<Group[]>('group_create');
 
         setGroups(groups);
     };
 
     const toggleLock = async (group: Group) => {
-        const updatedGroups = await invoke<Group[]>('lock_unlock_group', {
+        const updatedGroups = await invoke<Group[]>('group_lock_unlock', {
             groupId: group.id,
             lock: !group.is_locked, // Toggle current lock state
         });
