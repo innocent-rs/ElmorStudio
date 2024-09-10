@@ -44,6 +44,25 @@ fn lock_unlock_group(group_id: u32, lock: bool, state: State<'_, Mutex<StudioSta
     state.groups.clone()
 }
 #[tauri::command]
+fn rename_group(group_id: u32, new_name: String, state: State<'_, Mutex<crate::StudioState>>) -> Vec<crate::Group> {
+    let mut state = state.lock().unwrap();
+
+    // Find the group with the specified id
+    if let Some(group) = state.groups.iter_mut().find(|group| group.id == group_id) {
+        // Check if the group is locked
+        if group.is_locked {
+            // If the group is locked, panic with a custom message
+            panic!("Cannot rename a locked group!");
+        }
+
+        // Rename the group if it's not locked
+        group.name = new_name;
+    }
+
+    // Return the updated list of groups
+    state.groups.clone()
+}
+#[tauri::command]
 fn remove_group(group_id: u32, state: State<'_, Mutex<StudioState>>) ->  Vec<Group> {
 /*    let mut state = state2.lock().unwrap();
     if let Some(group) = state.groups.iter().find(|group| group.id == group_id) {
@@ -172,7 +191,7 @@ pub fn run() {
             Ok(())
         })
         .plugin(tauri_plugin_shell::init())
-        .invoke_handler(tauri::generate_handler![get_groups, remove_group, create_group, lock_unlock_group])
+        .invoke_handler(tauri::generate_handler![get_groups, remove_group, create_group, lock_unlock_group, rename_group])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

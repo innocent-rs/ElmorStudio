@@ -83,12 +83,10 @@ function Devices() {
         setNewGroupName(groupNames[folder] || folder); // Prefill the input with the current group name
     };
 
-    const handleGroupNameChange = () => {
+    const handleGroupNameChange = async (groupId: number) => {
         if (!newGroupName.trim()) return; // Don't allow empty group names
-        setGroupNames((prevNames) => ({
-            ...prevNames,
-            [editingGroup!]: newGroupName.trim(),
-        }));
+        let groups = await invoke<Group[]>('rename_group', {groupId, newName: newGroupName});
+        setGroups(groups);
         setEditingGroup(null); // Reset the renaming state
     };
 
@@ -169,7 +167,7 @@ function Devices() {
                                         className="p-2 bg-gray-700 text-white rounded"
                                     />
                                     <button
-                                        onClick={handleGroupNameChange}
+                                        onClick={() => handleGroupNameChange(group.id)}
                                         className="ml-2 px-4 py-2 bg-blue-600 text-white rounded"
                                     >
                                         Save
@@ -236,6 +234,7 @@ function Devices() {
                                     key={device.id}
                                     device={device}
                                     onDrop={handleDrop}
+                                    group={group}
                                     /*onRemoveFromGroup={handleRemoveFromGroup}*/
                                 />
                             ))}
@@ -252,19 +251,21 @@ const ItemTypes = {
     DEVICE: 'device',
 };
 
-function DeviceCard({device, onDrop, onRemoveFromGroup}: {
+function DeviceCard({device, onDrop, group, onRemoveFromGroup}: {
     device: Device;
     onDrop: (dragged: Device, target: Device) => void;
+    group: Group;
     onRemoveFromGroup: (deviceId: number) => void
 }) {
     // Drag functionality
     const [{isDragging}, drag] = useDrag(() => ({
         type: ItemTypes.DEVICE,
+        canDrag: () => !group.is_locked,
         item: device,
         collect: (monitor) => ({
             isDragging: monitor.isDragging(),
         }),
-    }));
+    }), [group]);
 
     // Drop functionality
     const [{isOver, canDrop}, drop] = useDrop(() => ({
