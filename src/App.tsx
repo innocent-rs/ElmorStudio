@@ -1,9 +1,9 @@
-import {useEffect, useState} from "react";
+import React, {useEffect, useRef, useState} from "react";
 import {invoke} from "@tauri-apps/api/core";
 import "./App.css";
 import {DndProvider, useDrag, useDrop} from "react-dnd";
 import {HTML5Backend} from "react-dnd-html5-backend";
-import {LockClosedIcon, LockOpenIcon, PencilIcon} from '@heroicons/react/24/solid';
+import {LockClosedIcon, LockOpenIcon, PencilIcon, TrashIcon} from '@heroicons/react/24/solid';
 
 interface Group {
     id: number;
@@ -11,6 +11,7 @@ interface Group {
     devices: Device[];
     is_locked: boolean;
 }
+
 interface Device {
     id: number;
     kind: string;
@@ -21,27 +22,128 @@ interface Device {
     //folder?: string; // Folder name (optional)
 }
 
-const LockButton = ({ isLocked, onToggleLock }) => {
+const LockButton = ({isLocked, onToggleLock}) => {
     return (
-        <button onClick={onToggleLock} className="focus:outline-none">
-            {isLocked}
+        <button onClick={onToggleLock}>
             {isLocked ? (
-                <LockClosedIcon className="h-6 w-6 text-gray-700" />
+                <LockClosedIcon className={`h-24 w-24 text-gray-700`}/>
             ) : (
-                <LockOpenIcon className="h-6 w-6 text-gray-700" />
+                <LockOpenIcon className={`h-24 w-24 text-gray-700`}/>
             )}
         </button>
     );
 };
 
+const EditableText = ({group, onSave}: {
+    group: Group;
+    onSave(groups: Group[]): void;
+}) => {
+    const [isEditing, setIsEditing] = useState(false);
+    const [newText, setNewText] = useState(group.name);
+    const [isProcessing, _] = useState(false);
+    const inputRef = useRef<HTMLInputElement>(null);
+    const toggleLock = async (group: Group) => {
+        const updatedGroups = await invoke<Group[]>('group_lock_unlock', {
+            groupId: group.id,
+            lock: !group.is_locked, // Toggle current lock state
+        });
+        onSave(updatedGroups);
+    };
+
+    const handleSave = async () => {
+        if (!newText.trim()) return; // Don't allow empty group names
+        let groups = await invoke<Group[]>('group_rename', {groupId: group.id, newName: newText});
+        onSave(groups);
+        setIsEditing(false);
+    };
+
+    const handleCancel = () => {
+        setNewText(group.name);
+        setIsEditing(false);
+    };
+
+    const handlePencilClick = () => {
+        setIsEditing(true);
+        setTimeout(() => {
+            inputRef.current && inputRef.current.focus(); // Step 2: Focus on the input when editing starts
+        }, 0); // Timeout ensures React has updated the DOM before focusing
+    };
+
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter') {
+            handleSave(); // Call save when Enter is pressed
+        }
+        else if (e.key === 'Escape') {
+            handleCancel();
+        }
+    };
+
+    return (
+        <div className="flex items-center justify-between w-full">
+            {isEditing ? (
+                <div className="flex items-center space-x-2 w-full">
+                    <input
+                        ref={inputRef} // Step 3: Attach the ref to the input
+                        type="text"
+                        value={newText}
+                        onChange={(e) => setNewText(e.target.value)}
+                        onKeyDown={handleKeyDown} // Handle key press
+                        className="flex-1 p-2 bg-gray-800 text-white rounded outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                    />
+                    <button
+                        onClick={handleSave}
+                        disabled={newText === group.name}
+                        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-all disabled:bg-gray-600"
+                    >
+                        Save
+                    </button>
+                    <button
+                        onClick={handleCancel}
+                        className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-all"
+                    >
+                        Cancel
+                    </button>
+                </div>
+            ) : (
+                <div className="flex items-center justify-between w-full">
+                    {/* Left aligned text */}
+                    <div className="flex items-center space-x-2">
+                        <h2 className="text-2xl font-bold text-white truncate">
+                            {group.name}
+                        </h2>
+                        <PencilIcon
+                            className={`w-5 h-5 ${!group.is_locked ? 'text-gray-400 cursor-pointer hover:text-gray-200' : 'text-gray-600'}`}
+                            onClick={handlePencilClick}
+                        />
+                    </div>
+
+                    {/* Right aligned icons */}
+                    <div className="flex items-center space-x-3">
+                        {group.is_locked ? (
+                            <LockClosedIcon
+                                className="w-5 h-5 text-gray-600 cursor-pointer"
+                                onClick={() => !isProcessing && toggleLock(group)}
+                            />
+                        ) : (
+                            <LockOpenIcon
+                                className="w-5 h-5 text-gray-400 cursor-pointer hover:text-gray-200"
+                                onClick={() => !isProcessing && toggleLock(group)}
+                            />
+                        )}
+
+                        <TrashIcon
+                            className={`w-5 h-5 ${!group.is_locked ? 'text-gray-400 cursor-pointer hover:text-gray-200' : 'text-gray-600'}`}
+                            onClick={() => !group.is_locked && invoke('group_delete', { groupId: group.id })}
+                        />
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
 function Devices() {
     const [groups, setGroups] = useState<Group[]>([]);
-    const [groupNames, setGroupNames] = useState<{ [key: string]: string }>({}); // Store custom group names
-    const [editingGroup, setEditingGroup] = useState<string | null>(null); // Track which group is being renamed
-    const [newGroupName, setNewGroupName] = useState<string>(""); // Track new group name input
-    const [groupRates, setGroupRates] = useState<{
-        [key: string]: { pullRate: number; writeRate: number };
-    }>({});
 
     useEffect(() => {
         // Define an async function inside useEffect
@@ -65,67 +167,17 @@ function Devices() {
         setGroups(result)
     };
 
-/*    const groupedDevices = devices.reduce((acc, device) => {
-        const folder = device.folder || 'Ungrouped';
-        if (!acc[folder]) acc[folder] = [];
-        acc[folder].push(device);
-        return acc;
-    }, {} as Record<string, Device[]>);*/
-
     const handleRemoveGroup = async (groupId: number) => {
-        const updatedGroups: Group[] = await invoke('group_remove', { groupId: groupId });
+        const updatedGroups: Group[] = await invoke('group_remove', {groupId: groupId});
         setGroups(updatedGroups); // Update the local state with the updated groups
         console.log(updatedGroups);
     };
 
-    const handleRenameGroup = (folder: string) => {
-        setEditingGroup(folder); // Set the group being renamed
-        setNewGroupName(groupNames[folder] || folder); // Prefill the input with the current group name
-    };
-
-    const handleGroupNameChange = async (groupId: number) => {
-        if (!newGroupName.trim()) return; // Don't allow empty group names
-        let groups = await invoke<Group[]>('group_rename', {groupId, newName: newGroupName});
+    const handleGroupNameChange = async (groupId: number, newName: string) => {
+        if (!newName.trim()) return; // Don't allow empty group names
+        let groups = await invoke<Group[]>('group_rename', {groupId, newName});
         setGroups(groups);
-        setEditingGroup(null); // Reset the renaming state
     };
-
-    const handleRateChange = (folder: string, type: "pullRate" | "writeRate", value: number) => {
-        setGroupRates((prevRates) => ({
-            ...prevRates,
-            [folder]: {
-                ...prevRates[folder],
-                [type]: value,
-            },
-        }));
-    };
-
-    /*    return (
-            <div className="container mx-auto p-4">
-                {Object.entries(groupedDevices).map(([folderName, folderDevices]) => (
-                    <div key={folderName} className="mb-8">
-                        <h2 className="text-3xl font-bold mb-4 text-gray-100">{folderName}</h2>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-                            {folderDevices.map((device) => (
-                                <DeviceCard key={device.id} device={device} onDrop={handleDrop} onRemoveFromGroup={handleRemoveFromGroup}/>
-                            ))}
-                        </div>
-                    </div>
-                ))}
-            </div>
-        );*/
-/*    const handleDeleteGroup = (folder: string) => {
-        setDevices((prevDevices) =>
-            prevDevices.map((device) =>
-                device.folder === folder ? {...device, folder: undefined} : device
-            )
-        );
-        setGroupNames((prevNames) => {
-            const updatedNames = {...prevNames};
-            delete updatedNames[folder]; // Remove the custom name for the deleted group
-            return updatedNames;
-        });
-    };*/
 
     const onAddGroup = async () => {
         let groups = await invoke<Group[]>('group_create');
@@ -140,108 +192,37 @@ function Devices() {
         });
         setGroups(updatedGroups);
     };
+
     return (
-        <div className="container mx-auto p-4">
+        <div className="container mx-auto p-4 bg-gray-800 rounded-lg">
             <button
-                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mb-8 w-full text-center"
                 onClick={onAddGroup}
             >
-                Add Group
+                Create a new group
             </button>
             {groups.map((group: Group) => {
-                const displayFolderName = group.name;
-
                 return (
-                    <div key={group.id} className="mb-8">
-                        <div className="flex items-center justify-between">
-                            <LockButton
-                                isLocked={group.is_locked}
-                                onToggleLock={() => toggleLock(group)}
-                            />
-                            {editingGroup === group.name ? (
-                                <div className="flex">
-                                    <input
-                                        type="text"
-                                        value={newGroupName}
-                                        onChange={(e) => setNewGroupName(e.target.value)}
-                                        className="p-2 bg-gray-700 text-white rounded"
-                                    />
-                                    <button
-                                        onClick={() => handleGroupNameChange(group.id)}
-                                        className="ml-2 px-4 py-2 bg-blue-600 text-white rounded"
-                                    >
-                                        Save
-                                    </button>
-                                    <button
-                                        onClick={() => setEditingGroup(null)}
-                                        className="ml-2 px-4 py-2 bg-red-600 text-white rounded"
-                                    >
-                                        Cancel
-                                    </button>
-                                </div>
-                            ) : (
-                                <h2 className="text-3xl font-bold mb-4 text-gray-100">{displayFolderName}</h2>
-                            )}
-
-                            {!editingGroup && group.name !== "Ungrouped" && (
-                                <div className="flex space-x-2">
-                                    <button
-                                        disabled={group.is_locked}
-                                        onClick={() => handleRenameGroup(group.name)}
-                                        className="px-4 py-2 bg-gray-600 text-white rounded disabled:bg-gray-400 disabled:cursor-not-allowed"
-                                    >
-                                        <div className="icons">
-                                            <PencilIcon className="h-6 w-6"/> {/* Solid Pencil Icon */}
-                                        </div>
-                                    </button>
-                                    <button
-                                        disabled={group.is_locked}
-                                        onClick={() => handleRemoveGroup(group.id)}
-                                        className="px-4 py-2 bg-red-600 text-white rounded disabled:bg-gray-400 disabled:cursor-not-allowed"
-                                    >
-                                        Delete Group
-                                    </button>
-                                </div>
-                            )}
+                    <div key={group.id} className="mb-12 bg-gray-700 p-6 rounded-lg shadow-lg">
+                        <div className="flex items-center justify-between mb-4 border-b border-gray-600 pb-2">
+                            {/* EditableText component */}
+                            <EditableText group={group} onSave={setGroups}/>
                         </div>
-
-                        {/*{group.name !== "Ungrouped" && (
-                            <div className="flex space-x-4 mt-2">
-                                <div>
-                                    <label className="block text-gray-400">Pull Rate:</label>
-                                    <input
-                                        type="number"
-                                        value={groupRates[folderName]?.pullRate || 0}
-                                        onChange={(e) => handleRateChange(folderName, "pullRate", Number(e.target.value))}
-                                        className="p-2 bg-gray-700 text-white rounded"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-gray-400">Write Rate:</label>
-                                    <input
-                                        type="number"
-                                        value={groupRates[folderName]?.writeRate || 0}
-                                        onChange={(e) => handleRateChange(folderName, "writeRate", Number(e.target.value))}
-                                        className="p-2 bg-gray-700 text-white rounded"
-                                    />
-                                </div>
-                            </div>
-                        )}*/}
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
                             {group.devices.map((device) => (
-                                <DeviceCard
-                                    key={device.id}
-                                    device={device}
-                                    onDrop={handleDrop}
-                                    group={group}
-                                    /*onRemoveFromGroup={handleRemoveFromGroup}*/
-                                />
+                                /*                                <DeviceCard
+                                                                    key={device.id}
+                                                                    device={device}
+                                                                    onDrop={handleDrop}
+                                                                    group={group}
+                                                                    /!*onRemoveFromGroup={handleRemoveFromGroup}*!/
+                                                                />*/
+                                <div></div>
                             ))}
                         </div>
                     </div>
-                )
-                    ;
+                );
             })}
         </div>
     );
@@ -303,7 +284,7 @@ function DeviceCard({device, onDrop, group, onRemoveFromGroup}: {
                 Port: {device.port} <br/>
                 Firmware version: 0x{device.firmware}
             </p>
-{/*            {device.folder && (
+            {/*            {device.folder && (
                 <button
                     className="mt-2 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-500"
                     onClick={() => onRemoveFromGroup(device.id)}
