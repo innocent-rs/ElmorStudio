@@ -6,7 +6,7 @@ use std::sync::Mutex;
 use serde::{Deserialize, Serialize};
 use tauri::{Manager, State};
 use crate::devices::{Device, DeviceKind};
-use crate::groups::{group_create, group_lock_unlock, group_remove, group_remove_from, group_rename, groups_fetch, Group};
+use crate::groups::{group_create, group_lock_unlock, group_move_device_to, group_delete, group_remove_from, group_rename, groups_fetch, Group};
 use crate::state::StudioState;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -32,7 +32,7 @@ pub fn run() {
             Ok(())
         })
         .plugin(tauri_plugin_shell::init())
-        .invoke_handler(tauri::generate_handler![groups_fetch, group_create, group_lock_unlock, group_rename, group_remove, group_remove_from])
+        .invoke_handler(tauri::generate_handler![groups_fetch, group_create, group_lock_unlock, group_rename, group_delete, group_remove_from, group_move_device_to])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

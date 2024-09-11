@@ -79,19 +79,7 @@ pub(crate) fn group_rename(group_id: u32, new_name: String, state: State<'_, Mut
     state.groups.clone()
 }
 #[tauri::command]
-pub(crate) fn group_remove(group_id: u32, state: State<'_, Mutex<StudioState>>) ->  Vec<Group> {
-    /*    let mut state = state2.lock().unwrap();
-        if let Some(group) = state.groups.iter().find(|group| group.id == group_id) {
-            // Move all devices to the default group (id = 0)
-            for device in group.devices.clone() {
-                // Use the remove_from_group function to move each device to the default group
-                remove_from_group(group_id, device.id, state2.clone());
-            }
-        }
-    
-        // Remove the group with the specified id
-        state.groups.retain(|group| group.id != group_id);
-        state.groups.clone()*/
+pub(crate) fn group_delete(group_id: u32, state: State<'_, Mutex<StudioState>>) ->  Vec<Group> {
     let mut devices_to_move = vec![];
 
     {
@@ -143,5 +131,42 @@ pub(crate) fn group_remove_from(group_id: u32, device_id: u32, state: State<'_, 
         }
     }
 
+    state.groups.clone()
+}
+
+#[tauri::command]
+pub(crate) fn group_move_device_to(
+    source_group_id: u32,
+    target_group_id: u32,
+    device_id: u32,
+    state: State<'_, Mutex<StudioState>>,
+) -> Vec<Group> {
+    let mut state = state.lock().unwrap();
+
+    // Find the source group by id
+    if let Some(mut source_group) = state.groups.iter_mut().find(|group| group.id == source_group_id) {
+        // Find the device in the source group
+        if let Some(device_index) = source_group.devices.iter().position(|device| device.id == device_id) {
+            // Remove the device from the source group
+            let device = source_group.devices.remove(device_index);
+
+            // Find or create the target group
+            if let Some(target_group) = state.groups.iter_mut().find(|group| group.id == target_group_id) {
+                // Add the device to the target group
+                target_group.devices.push(device);
+            } else {
+                // If the target group does not exist, create it
+                let new_group = Group {
+                    id: target_group_id,
+                    name: format!("Group {}", target_group_id),
+                    devices: vec![device],
+                    is_locked: false,
+                };
+                state.groups.push(new_group);
+            }
+        }
+    }
+
+    // Return the updated list of groups
     state.groups.clone()
 }
