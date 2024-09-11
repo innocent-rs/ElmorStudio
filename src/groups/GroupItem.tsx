@@ -23,6 +23,14 @@ const GroupItem = ({group, onSave, handleRemoveGroup}: {
         onSave(groups);
     };
 
+    const canDelete = () => {
+        return !group.is_locked && group.id !== 0;
+    }
+    const handleDelete = () => {
+        if(!canDelete()) return;
+        handleRemoveGroup(group.id);
+    }
+
     return (
         <div
             className={`flex items-center justify-between w-full transition-opacity duration-300`} // Apply the animation class based on "isRemoving"
@@ -32,7 +40,7 @@ const GroupItem = ({group, onSave, handleRemoveGroup}: {
                 <div className="flex items-center space-x-3">
                     {group.is_locked ? (
                         <LockClosedIcon
-                            className="w-5 h-5 text-gray-600 cursor-pointer"
+                            className="w-5 h-5 text-gray-400 cursor-pointer"
                             onClick={() => !isProcessing && toggleLock(group)}
                         />
                     ) : (
@@ -43,8 +51,8 @@ const GroupItem = ({group, onSave, handleRemoveGroup}: {
                     )}
 
                     <TrashIcon
-                        className={`w-5 h-5 ${!group.is_locked ? 'text-gray-400 cursor-pointer hover:text-gray-200' : 'text-gray-600'}`}
-                        onClick={() => !group.is_locked && handleRemoveGroup(group.id)}
+                        className={`w-5 h-5 ${canDelete() ? 'text-gray-400 cursor-pointer hover:text-gray-200' : 'text-gray-600'}`}
+                        onClick={handleDelete}
                     />
                 </div>
             </div>
