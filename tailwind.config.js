@@ -5,7 +5,17 @@ module.exports = {
     './index.html'
   ],
   theme: {
-    extend: {},
+    extend: {
+      keyframes: {
+        blink: {
+          '0%, 100%': { borderColor: 'green' },
+          '50%': { borderColor: 'currentColor' },
+        },
+      },
+      animation: {
+        blink: 'blink 1s infinite',
+      },
+    },
   },
   plugins: [],
 }

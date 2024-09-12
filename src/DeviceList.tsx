@@ -5,6 +5,7 @@ import {useDrop} from "react-dnd";
 import GroupItem from "./groups/GroupItem.tsx";
 import DeviceCard from "./DeviceCard.tsx";
 import clsx from "clsx";
+import Input from "./forms/Input.tsx";
 
 function GroupDropZone({group, onDropDevice, children}) {
     const [{isOver, canDrop}, drop] = useDrop({
@@ -41,6 +42,8 @@ function GroupDropZone({group, onDropDevice, children}) {
 
 function DeviceList() {
     const [groups, setGroups] = useState<Group[]>([]);
+    const [readingTime, setReadingTime] = useState("");
+    const [writingTime, setWritingTime] = useState("");
 
     useEffect(() => {
         // Define an async function inside useEffect
@@ -97,7 +100,44 @@ function DeviceList() {
                             className={`flex items-center justify-between mb-4 border-b border-gray-600 pb-2 transition-all duration-300`}>
                             <GroupItem group={group} onSave={setGroups} handleRemoveGroup={handleRemoveGroup}/>
                         </div>
-
+                        <form
+                            className="mb-4 flex items-center space-x-4 border-b border-gray-600 pb-2"
+                            onSubmit={(e) => {
+                                e.preventDefault();
+                                // Logic to handle form submission here
+                                // You can use the form's state to add a new device or perform other actions
+                            }}
+                        >
+                            <div className="max-w-sm space-y-3">
+                                <div>
+                                    <div className="relative">
+                                        <Input value={readingTime} handleChange={setReadingTime} placeholder="Reading time" disabled={group.is_locked} type="number" />
+                                        <div
+                                            className="absolute inset-y-0 end-0 flex items-center pointer-events-none z-20 pe-4">
+                                            <span className="text-gray-400 dark:text-neutral-500">ms</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="max-w-sm space-y-3">
+                                <div>
+                                    <div className="relative">
+                                        <Input value={writingTime} handleChange={setWritingTime} placeholder="Writing time" disabled={group.is_locked} type="number" />
+                                        <div
+                                            className="absolute inset-y-0 end-0 flex items-center pointer-events-none z-20 pe-4">
+                                            <span className="text-gray-400 dark:text-neutral-500">ms</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <button
+                                type="submit"
+                                className="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded disabled:bg-gray-500 disabled:cursor-not-allowed"
+                                disabled={group.is_locked}
+                            >
+                                Configure
+                            </button>
+                        </form>
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
                             {group.devices.map((device) => (
                                 <DeviceCard key={device.id} device={device} group={group}/>

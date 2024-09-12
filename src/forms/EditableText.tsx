@@ -1,5 +1,6 @@
 ﻿import {useRef, useState} from "react";
 import {PencilIcon} from "@heroicons/react/24/solid";
+import Input from "./Input.tsx";
 
 const EditableText = ({initialValue, onSave, canEdit}: {
     initialValue: string;
@@ -44,14 +45,15 @@ const EditableText = ({initialValue, onSave, canEdit}: {
         <div className="w-full">
             {isEditing ? (
                 <div className="flex items-center space-x-2 w-full">
-                    <input
+                    <Input ref={inputRef} value={text} handleChange={setText} disabled={canEdit} onKeyDown={handleKeyDown} />
+{/*                    <input
                         ref={inputRef}
                         type="text"
                         value={text}
                         onChange={(e) => setText(e.target.value)}
                         onKeyDown={handleKeyDown}
                         className="w-full p-2 bg-gray-800 text-white rounded outline-none focus:ring-2 focus:ring-blue-500"
-                    />
+                    />*/}
                     <button
                         onClick={handleSave}
                         disabled={initialValue === text}

@@ -14,13 +14,13 @@ pub fn run() {
     tauri::Builder::default()
         .setup(|app| {
             let group1 = Group::new(1, "Group 1".to_string(), vec![
-                    Device::new(1, DeviceKind::KTHUsb, "COM3".to_string(), 0x5),
-                    Device::new(2, DeviceKind::KTHUsb, "COM4".to_string(), 0x5),
+                    Device::new(1, DeviceKind::KTHUsb, "COM3".to_string(), 0x5, true),
+                    Device::new(2, DeviceKind::KTHUsb, "COM4".to_string(), 0x5, false),
                 ],
                 false,
             );
             let group2 = Group::new(0, "Ungrouped".to_string(), vec![
-                    Device::new(3, DeviceKind::KTHUsb, "COM5".to_string(), 0x5)
+                    Device::new(3, DeviceKind::KTHUsb, "COM5".to_string(), 0x5, true)
                 ],
                 false
             );

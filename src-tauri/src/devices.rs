@@ -14,7 +14,7 @@ pub(crate) struct Device {
     firmware: u16
 }
 impl Device {
-    pub fn new(id: u32, kind: DeviceKind, port: String, firmware: u16) ->  Self {
-        Device { id, kind, port, firmware, is_open: true }
+    pub fn new(id: u32, kind: DeviceKind, port: String, firmware: u16, is_open: bool ) ->  Self {
+        Device { id, kind, port, firmware, is_open }
     }
 }
